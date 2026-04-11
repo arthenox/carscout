@@ -1,0 +1,18 @@
+# Virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Temporary / test files
+*.log
+*.tmp
+re
+offline_translate.py
+generate_translations.py
+test_*.py
+temp_*.py
+fake_*.py
+
+# OS junk
+.DS_Store
+Thumbs.db
