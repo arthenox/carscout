@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CarScout - OBD2 Diagnostic Tool
+CarScout - Professional OBD2 Diagnostic Tool
 by arthenox
 """
 
@@ -23,78 +23,79 @@ from rich.prompt import Prompt, Confirm
 from rich.text import Text
 from rich.live import Live
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich import box
 
 console = Console()
 
 # ----------------------------------------------------------------------
-# UI Language strings (EN/FR) – no emojis
+# UI Language strings (EN/FR)
 # ----------------------------------------------------------------------
 LANGUAGES = {
     "en": {
         "app_name": "CarScout",
-        "tagline": "Your Pocket Mechanic",
-        "connecting": "Connecting to vehicle...",
-        "connected": "Connected successfully!",
-        "auto_failed": "Auto-detection failed. No ELM327 found.",
-        "ask_port": "Please enter the serial port (e.g. /dev/ttyUSB0, COM3) or press Enter to quit",
+        "tagline": "Professional OBD2 Diagnostic Tool",
+        "connecting": "Establishing connection to vehicle...",
+        "connected": "Connection established successfully",
+        "auto_failed": "Auto-detection failed. ELM327 not found.",
+        "ask_port": "Enter serial port (e.g., /dev/ttyUSB0, COM3) or press Enter to exit",
         "failed": "Connection failed. Please check the port and try again.",
-        "scanning": "Scanning ECU for trouble codes...",
-        "no_codes": "No trouble codes found. Your engine is healthy.",
+        "scanning": "Retrieving Diagnostic Trouble Codes (DTCs)...",
+        "no_codes": "No trouble codes found. Engine is healthy.",
         "codes_found": "Found {count} trouble code(s):",
         "clear_confirm": "Are you sure you want to clear all trouble codes?",
-        "cleared": "Trouble codes cleared successfully.",
+        "cleared": "All trouble codes have been cleared successfully.",
         "cancelled": "Operation cancelled.",
-        "live_data": "LIVE DATA STREAM",
-        "to_stop": "Press Ctrl+C to stop",
+        "live_data": "REAL-TIME SENSOR DATA",
+        "to_stop": "Press Ctrl+C to stop streaming",
         "param": "Parameter",
         "value": "Value",
         "unit": "Unit",
         "no_valid_pids": "No valid PIDs responded from the ECU.",
-        "menu_scan": "[1] Scan Trouble Codes (DTCs)",
-        "menu_clear": "[2] Clear Trouble Codes",
-        "menu_live": "[3] Live Data Stream",
-        "menu_exit": "[4] Exit",
-        "invalid_choice": "Invalid option. Please choose 1, 2, 3, or 4.",
+        "menu_scan": "Scan Trouble Codes (DTCs)",
+        "menu_clear": "Clear Trouble Codes",
+        "menu_live": "Live Data Stream",
+        "menu_exit": "Exit",
+        "invalid_choice": "Invalid selection. Please choose 1, 2, 3, or 4.",
         "description": "Description",
-        "goodbye": "Goodbye! Drive safely.",
-        "na": "N/A",
-        "port_label": "PORT",
+        "goodbye": "Shutting down. Drive safely.",
+        "na": "Not Available",
+        "port_label": "Port",
         "press_enter": "Press Enter to continue...",
-        "welcome": "Welcome to CarScout – the free, open-source OBD2 diagnostic tool.",
-        "help_text": "Select an option using the number keys."
+        "welcome": "Welcome to CarScout – a free, open-source diagnostic tool.",
+        "help_text": "Use the number keys to navigate."
     },
     "fr": {
         "app_name": "CarScout",
-        "tagline": "Votre Mecanicien de Poche",
-        "connecting": "Connexion au vehicule...",
-        "connected": "Connecte avec succes !",
-        "auto_failed": "Detection automatique echouee. Aucun ELM327 trouve.",
-        "ask_port": "Entrez le port serie (ex: /dev/ttyUSB0) ou Entree pour quitter",
-        "failed": "Echec de la connexion. Verifiez le port et reessayez.",
-        "scanning": "Analyse de l'ECU pour les codes d'erreur...",
-        "no_codes": "Aucun code d'erreur. Votre moteur est sain.",
-        "codes_found": "{count} code(s) d'erreur trouve(s) :",
+        "tagline": "Outil de diagnostic OBD2 professionnel",
+        "connecting": "Connexion au véhicule en cours...",
+        "connected": "Connexion établie avec succès",
+        "auto_failed": "Détection automatique échouée. ELM327 non trouvé.",
+        "ask_port": "Entrez le port série (ex: /dev/ttyUSB0) ou Entrée pour quitter",
+        "failed": "Échec de la connexion. Vérifiez le port et réessayez.",
+        "scanning": "Récupération des codes d'erreur (DTC)...",
+        "no_codes": "Aucun code d'erreur. Moteur sain.",
+        "codes_found": "{count} code(s) d'erreur trouvé(s) :",
         "clear_confirm": "Voulez-vous effacer tous les codes d'erreur ?",
-        "cleared": "Codes d'erreur effaces avec succes.",
-        "cancelled": "Operation annulee.",
-        "live_data": "DONNEES EN DIRECT",
-        "to_stop": "Appuyez sur Ctrl+C pour arreter",
-        "param": "Parametre",
+        "cleared": "Tous les codes d'erreur ont été effacés.",
+        "cancelled": "Opération annulée.",
+        "live_data": "DONNÉES CAPTEUR EN TEMPS RÉEL",
+        "to_stop": "Appuyez sur Ctrl+C pour arrêter",
+        "param": "Paramètre",
         "value": "Valeur",
-        "unit": "Unite",
-        "no_valid_pids": "Aucun PID valide n'a repondu de l'ECU.",
-        "menu_scan": "[1] Scanner les codes d'erreur (DTCs)",
-        "menu_clear": "[2] Effacer les codes d'erreur",
-        "menu_live": "[3] Flux de donnees en direct",
-        "menu_exit": "[4] Quitter",
-        "invalid_choice": "Option invalide. Choisissez 1, 2, 3 ou 4.",
+        "unit": "Unité",
+        "no_valid_pids": "Aucun PID valide n'a répondu.",
+        "menu_scan": "Scanner les codes d'erreur",
+        "menu_clear": "Effacer les codes d'erreur",
+        "menu_live": "Flux de données en direct",
+        "menu_exit": "Quitter",
+        "invalid_choice": "Choix invalide. Veuillez entrer 1, 2, 3 ou 4.",
         "description": "Description",
-        "goodbye": "Au revoir ! Conduisez prudemment.",
-        "na": "N/D",
-        "port_label": "PORT",
-        "press_enter": "Appuyez sur Entree pour continuer...",
-        "welcome": "Bienvenue sur CarScout – l'outil de diagnostic OBD2 gratuit et open-source.",
-        "help_text": "Selectionnez une option a l'aide des touches numeriques."
+        "goodbye": "Arrêt en cours. Conduisez prudemment.",
+        "na": "Non disponible",
+        "port_label": "Port",
+        "press_enter": "Appuyez sur Entrée pour continuer...",
+        "welcome": "Bienvenue sur CarScout – outil de diagnostic gratuit et open-source.",
+        "help_text": "Utilisez les touches numériques pour naviguer."
     }
 }
 
@@ -115,20 +116,20 @@ def load_dtc_db(lang="en"):
         return json.load(f)
 
 # ----------------------------------------------------------------------
-# Banner without emojis
+# Clean banner
 # ----------------------------------------------------------------------
 def show_banner(lang):
-    title = Text()
-    title.append(" CarScout ", style="bold cyan")
-    title.append(" - ", style="dim")
-    title.append(get_text("tagline", lang), style="italic")
+    title_text = Text()
+    title_text.append(" CarScout ", style="bold cyan on blue")
+    title_text.append(" - ", style="dim")
+    title_text.append(get_text("tagline", lang), style="italic bright_yellow")
     subtitle = Text()
     subtitle.append("   Created by ", style="dim")
     subtitle.append("arthenox", style="bold magenta")
     subtitle.append(" | ", style="dim")
     subtitle.append("Offline DTC Database", style="dim green")
     panel = Panel(
-        Text.assemble(title, "\n", subtitle),
+        Text.assemble(title_text, "\n", subtitle),
         border_style="bright_blue",
         padding=(1, 2),
         expand=False
@@ -138,7 +139,7 @@ def show_banner(lang):
     console.print()
 
 # ----------------------------------------------------------------------
-# Connection with progress animation
+# Connection
 # ----------------------------------------------------------------------
 def connect_to_car(lang):
     show_banner(lang)
@@ -148,13 +149,14 @@ def connect_to_car(lang):
         transient=True,
         console=console
     ) as progress:
-        progress.add_task(description=get_text("connecting", lang), total=None)
+        progress.add_task(description=f"[bold cyan]{get_text('connecting', lang)}", total=None)
         time.sleep(1.5)
         connection = obd.OBD()
     if connection.is_connected():
-        console.print(f"\n[bold green]{get_text('connected', lang)}[/bold green]\n")
+        console.print(f"\n[bold green]✓ {get_text('connected', lang)}[/bold green]")
+        console.print(f"[dim]   Port: {connection.port_name()}[/dim]\n")
         return connection
-    console.print(f"\n[bold red]{get_text('auto_failed', lang)}[/bold red]\n")
+    console.print(f"\n[bold red]✗ {get_text('auto_failed', lang)}[/bold red]\n")
     try:
         port = Prompt.ask(f"[bold yellow]{get_text('ask_port', lang)}[/bold yellow]", default="")
     except (KeyboardInterrupt, EOFError):
@@ -169,30 +171,32 @@ def connect_to_car(lang):
         transient=True,
         console=console
     ) as progress:
-        progress.add_task(description=get_text("connecting", lang), total=None)
+        progress.add_task(description=f"[bold cyan]{get_text('connecting', lang)}", total=None)
         time.sleep(1)
         connection = obd.OBD(portstr=port)
     if connection.is_connected():
-        console.print(f"\n[bold green]{get_text('connected', lang)}[/bold green]\n")
+        console.print(f"\n[bold green]✓ {get_text('connected', lang)}[/bold green]")
+        console.print(f"[dim]   Port: {connection.port_name()}[/dim]\n")
         return connection
-    console.print(f"\n[bold red]{get_text('failed', lang)}[/bold red]\n")
+    console.print(f"\n[bold red]✗ {get_text('failed', lang)}[/bold red]\n")
     sys.exit(1)
 
 # ----------------------------------------------------------------------
 # Scan DTCs
 # ----------------------------------------------------------------------
 def scan_dtcs(connection, lang, db):
-    console.print(f"[cyan]{get_text('scanning', lang)}[/cyan]")
-    codes = connection.query_codes()
+    console.print(f"[cyan]► {get_text('scanning', lang)}[/cyan]")
+    response = connection.query(obd.commands.GET_DTC)
+    codes = response.value if not response.is_null() else []
     if not codes:
-        console.print(f"[green]{get_text('no_codes', lang)}[/green]")
+        console.print(f"[bold green]✓ {get_text('no_codes', lang)}[/bold green]")
         return
-    console.print(f"[bold red]{get_text('codes_found', lang).format(count=len(codes))}[/bold red]")
-    table = Table(box=None, show_header=True, header_style="bold magenta")
+    console.print(f"[bold red]⚠ {get_text('codes_found', lang).format(count=len(codes))}[/bold red]")
+    table = Table(box=box.ROUNDED, show_header=True, header_style="bold magenta")
     table.add_column("Code", style="bold yellow", justify="center", width=10)
     table.add_column(get_text("description", lang), style="white")
     for code in codes:
-        desc = db.get(code.upper(), get_text("na", lang))
+        desc = db.get(str(code).upper(), get_text("na", lang))
         table.add_row(str(code), desc)
     console.print(table)
     console.print()
@@ -202,14 +206,14 @@ def scan_dtcs(connection, lang, db):
 # ----------------------------------------------------------------------
 def clear_dtcs(connection, lang):
     if Confirm.ask(f"[bold red]{get_text('clear_confirm', lang)}[/bold red]"):
-        connection.clear_dtc()
-        console.print(f"[green]{get_text('cleared', lang)}[/green]")
+        connection.query(obd.commands.CLEAR_DTC)
+        console.print(f"[bold green]✓ {get_text('cleared', lang)}[/bold green]")
     else:
         console.print(f"[yellow]{get_text('cancelled', lang)}[/yellow]")
     console.print()
 
 # ----------------------------------------------------------------------
-# Live Data
+# Live Data – stable version without rich.Live
 # ----------------------------------------------------------------------
 def live_data(connection, pids, interval, lang):
     console.print(Panel(f"[bold white on blue]  {get_text('live_data', lang)}  [/bold white on blue]", expand=False))
@@ -222,21 +226,23 @@ def live_data(connection, pids, interval, lang):
     if not valid:
         console.print(f"[yellow]{get_text('no_valid_pids', lang)}[/yellow]")
         return
-    table = Table(box=None, show_header=True, header_style="bold green")
-    table.add_column(get_text("param", lang), style="bold cyan")
-    table.add_column(get_text("value", lang), justify="right", style="bold white")
-    table.add_column(get_text("unit", lang), style="dim")
     try:
-        with Live(table, console=console, refresh_per_second=10) as live:
-            while True:
-                table.rows.clear()
-                for cmd in valid:
-                    val = connection.query(cmd)
-                    if not val.is_null():
-                        table.add_row(cmd.name, str(val.value), str(cmd.unit))
-                    else:
-                        table.add_row(cmd.name, "N/A", str(cmd.unit))
-                time.sleep(interval)
+        while True:
+            console.clear()
+            console.print(Panel(f"[bold white on blue]  {get_text('live_data', lang)}  [/bold white on blue]", expand=False))
+            console.print(f"[dim]{get_text('to_stop', lang)}[/dim]\n")
+            table = Table(box=box.SIMPLE, show_header=True, header_style="bold green")
+            table.add_column(get_text("param", lang), style="bold cyan")
+            table.add_column(get_text("value", lang), justify="right", style="bold white")
+            table.add_column(get_text("unit", lang), style="dim")
+            for cmd in valid:
+                val = connection.query(cmd)
+                if not val.is_null():
+                    table.add_row(cmd.name, str(val.value), str(cmd.unit))
+                else:
+                    table.add_row(cmd.name, "N/A", str(cmd.unit))
+            console.print(table)
+            time.sleep(interval)
     except KeyboardInterrupt:
         console.print(f"\n[dim]{get_text('to_stop', lang)}[/dim]")
 
@@ -249,10 +255,10 @@ def menu_loop(connection, lang, db):
     while True:
         menu_panel = Panel(
             "\n".join([
-                f"  {get_text('menu_scan', lang)}",
-                f"  {get_text('menu_clear', lang)}",
-                f"  {get_text('menu_live', lang)}",
-                f"  {get_text('menu_exit', lang)}"
+                f"  [bold yellow]1[/bold yellow]   {get_text('menu_scan', lang)}",
+                f"  [bold yellow]2[/bold yellow]   {get_text('menu_clear', lang)}",
+                f"  [bold yellow]3[/bold yellow]   {get_text('menu_live', lang)}",
+                f"  [bold yellow]4[/bold yellow]   {get_text('menu_exit', lang)}"
             ]),
             title=f"[bold white]{get_text('app_name', lang)}[/bold white]",
             subtitle="[bold magenta]by arthenox[/bold magenta]",
