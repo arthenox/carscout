@@ -1,0 +1,4 @@
+obd>=0.7.0
+rich>=13.0.0
+pyserial>=3.5
+pint>=0.24
